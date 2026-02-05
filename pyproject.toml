@@ -54,7 +54,7 @@ dependencies = [
 
 [project.optional-dependencies]
 demo = [
-    "gradio>=4.0.0",
+    "gradio>=4.0.0,<4.44.0",  # 4.44.x has Label component bug
 ]
 export = [
     "onnx>=1.14.0",
