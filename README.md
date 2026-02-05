@@ -30,8 +30,21 @@ A simple, educational package for fine-tuning Vision Transformer (ViT) models us
 git clone https://github.com/jman4162/PyTorch-Vision-Transformers-ViT.git
 cd PyTorch-Vision-Transformers-ViT
 pip install -e .
+```
 
-# Or with all extras (gradio demo, ONNX export, dev tools)
+### Optional Dependencies
+
+```bash
+# Gradio web demo
+pip install -e ".[demo]"
+
+# ONNX export
+pip install -e ".[export]"
+
+# Development tools (pytest, ruff, black, mypy)
+pip install -e ".[dev]"
+
+# Everything
 pip install -e ".[all]"
 ```
 
@@ -148,6 +161,54 @@ model = load_model(
 )
 ```
 
+### ONNX Export
+
+```python
+from vit_trainer import load_model, ExportConfig
+
+# Load trained model
+model = load_model("vit_b_16", num_classes=10, checkpoint_path="best_model.pt")
+
+# Export to ONNX
+config = ExportConfig(output_path="model.onnx", opset_version=14)
+config.export(model)
+
+# Or use CLI
+# vit-train export --checkpoint best_model.pt --output model.onnx
+```
+
+## API Reference
+
+```python
+from vit_trainer import (
+    # Configuration
+    TrainingConfig,           # Training hyperparameters
+    ExportConfig,             # ONNX export settings
+
+    # Models
+    load_model,               # Load ViT with pretrained weights
+    VIT_VARIANTS,             # Available model variants
+
+    # Data
+    get_cifar10_loaders,      # CIFAR-10 data loaders
+    get_cifar100_loaders,     # CIFAR-100 data loaders
+    CIFAR10_CLASSES,          # Class names
+
+    # Training
+    Trainer,                  # Training loop with AMP
+    EarlyStopping,            # Early stopping callback
+    ModelCheckpoint,          # Save best model
+
+    # Evaluation
+    evaluate_model,           # Loss and accuracy
+    compute_metrics,          # Precision, recall, F1
+    plot_confusion_matrix,    # Visualization
+
+    # Visualization
+    visualize_attention,      # Attention heatmaps
+)
+```
+
 ## Project Structure
 
 ```
@@ -161,7 +222,7 @@ vit-trainer/
 │   ├── training/           # Trainer and callbacks
 │   ├── evaluation/         # Metrics and plotting
 │   └── visualization/      # Attention maps
-├── tests/                  # Unit tests
+├── tests/                  # Unit tests (44 tests)
 ├── configs/                # YAML configurations
 ├── notebooks/              # Tutorial notebooks
 ├── app.py                  # Gradio demo
