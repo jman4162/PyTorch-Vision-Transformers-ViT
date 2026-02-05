@@ -1,12 +1,5 @@
-torch>=2.0.0
-torchvision>=0.15.0
-torchsummary>=1.5.1
-tqdm>=4.65.0
-numpy>=1.24.0
-matplotlib>=3.7.0
-Pillow>=9.4.0
-scikit-learn>=1.2.0
-seaborn>=0.12.0
-gradio>=4.0.0
-onnx>=1.14.0
-onnxruntime>=1.15.0
+# Install vit-trainer package (dependencies defined in pyproject.toml)
+-e .
+
+# For all extras (gradio demo, ONNX export, dev tools), use:
+# pip install -e ".[all]"
