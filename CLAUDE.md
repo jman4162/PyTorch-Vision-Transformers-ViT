@@ -4,105 +4,135 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Production-ready tutorial demonstrating how to fine-tune Vision Transformer (ViT) models for image classification using PyTorch. Achieves 97.65% accuracy on CIFAR-10 with modern training techniques.
+`vit-trainer` is a pip-installable Python package for fine-tuning Vision Transformer (ViT) models. It provides a clean, educational implementation with modern training techniques, achieving 97.65% accuracy on CIFAR-10.
+
+## Package Structure
+
+```
+vit-trainer/
+├── vit_trainer/              # Main package
+│   ├── __init__.py           # Public API exports
+│   ├── config.py             # TrainingConfig dataclass
+│   ├── cli.py                # Command-line interface
+│   ├── data/
+│   │   ├── cifar.py          # CIFAR-10/100 loaders
+│   │   └── transforms.py     # Image transforms
+│   ├── models/
+│   │   └── vit.py            # Model registry + factory
+│   ├── training/
+│   │   ├── trainer.py        # Trainer class (AMP, warmup)
+│   │   └── callbacks.py      # EarlyStopping, Checkpointing
+│   ├── evaluation/
+│   │   └── metrics.py        # Accuracy, confusion matrix
+│   └── visualization/
+│       └── attention.py      # Attention map extraction
+├── tests/                    # Unit tests (pytest)
+├── configs/                  # YAML configurations
+├── notebooks/                # Tutorial notebooks
+├── app.py                    # Gradio demo
+└── pyproject.toml            # Package configuration
+```
 
 ## Running the Project
 
-### Main Tutorial (Jupyter Notebook)
+### Install Package
 ```bash
-# Install dependencies
-pip install -r requirements.txt
-
-# Launch notebook
-jupyter notebook Fine_tuning_Vision_Transformers_ViT_with_PyTorch.ipynb
+pip install -e .                  # Basic install
+pip install -e ".[all]"           # With all extras
 ```
 
-### Gradio Demo (Standalone)
+### CLI Commands
 ```bash
-python app.py
-# Opens at http://localhost:7860
+vit-train train --model vit_b_16 --dataset cifar10 --epochs 10
+vit-train eval --checkpoint best_model.pt --dataset cifar10
+vit-train predict --checkpoint best_model.pt --image cat.jpg
+vit-train export --checkpoint best_model.pt --output model.onnx
 ```
 
-**Note:** GPU strongly recommended (~11 minutes per epoch on GPU).
+### Python API
+```python
+from vit_trainer import Trainer, load_model, get_cifar10_loaders
 
-## Architecture
+train_loader, val_loader, test_loader = get_cifar10_loaders(batch_size=64)
+model = load_model("vit_b_16", num_classes=10)
+trainer = Trainer(model, lr=1e-4, use_amp=True)
+trainer.fit(train_loader, val_loader, epochs=10)
+```
+
+### Gradio Demo
+```bash
+python app.py  # Opens at http://localhost:7860
+```
+
+### Run Tests
+```bash
+pytest tests/
+```
+
+## Key Implementation Details
 
 ### Data Pipeline
-- CIFAR-10 dataset (60,000 images, 10 classes)
-- Images resized to 224x224 (ViT input size), normalized with ImageNet statistics
-- Data augmentation: RandomHorizontalFlip, RandomRotation, ColorJitter
-- Train/Val/Test split: 40,000 / 10,000 / 10,000
-- **Fixed**: Uses `Subset` instead of `random_split` for proper validation transforms
+- CIFAR-10/100 with `Subset` (not `random_split`) for proper validation transforms
+- ImageNet normalization: mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
+- Default augmentation: RandomHorizontalFlip, RandomRotation, ColorJitter
 
 ### Model Variants
 | Variant | Parameters | Use Case |
 |---------|------------|----------|
 | `vit_b_16` | 86M | Default - best accuracy/speed |
 | `vit_b_32` | 88M | Faster inference |
-| `vit_l_16` | 304M | Higher accuracy, more memory |
+| `vit_l_16` | 304M | Higher accuracy |
 
 ### Training Configuration
 - Optimizer: AdamW (lr=1e-4, weight_decay=0.05)
-- Scheduler: Cosine annealing with 2-epoch warmup
+- Scheduler: Cosine annealing with linear warmup (2 epochs)
 - Mixed Precision: AMP with GradScaler
 - Gradient Clipping: max_norm=1.0
-- Loss: CrossEntropyLoss
-- Batch size: 64, Epochs: 10 (max)
-- Early stopping: patience=3 epochs
+- Early stopping: patience=3
 
-### Evaluation & Visualization
-- Accuracy, precision, recall, F1 per class
-- Confusion matrix
-- Attention map visualization
-- Misclassified examples analysis
+### Public API (from `__init__.py`)
+```python
+# Config
+TrainingConfig, ExportConfig
 
-### Deployment
-- ONNX export with dynamic batch size
-- ONNX Runtime inference testing
-- Inference benchmarking (PyTorch vs ONNX)
-- Gradio web interface
+# Models
+load_model, VIT_VARIANTS, get_model_info
 
-## Key Files
+# Data
+get_cifar10_loaders, get_cifar100_loaders
+CIFAR10_CLASSES, CIFAR100_CLASSES
+get_train_transform, get_val_transform
 
-| File | Description |
-|------|-------------|
-| `Fine_tuning_Vision_Transformers_ViT_with_PyTorch.ipynb` | Complete tutorial |
-| `app.py` | Standalone Gradio demo |
-| `requirements.txt` | Python dependencies |
-| `.gitignore` | Git ignore patterns |
+# Training
+Trainer, EarlyStopping, ModelCheckpoint
+
+# Evaluation
+evaluate_model, get_predictions, compute_metrics, plot_confusion_matrix
+
+# Visualization
+visualize_attention, show_attention_on_image, visualize_samples_with_attention
+```
+
+## Development Commands
+
+```bash
+# Install dev dependencies
+pip install -e ".[dev]"
+
+# Run tests
+pytest tests/ -v
+
+# Format code
+black vit_trainer/
+ruff check vit_trainer/ --fix
+
+# Type check
+mypy vit_trainer/
+```
 
 ## Environment Notes
 
-- Auto-detects Colab vs local environment
-- In Colab: mounts Google Drive, saves to `/content/drive/MyDrive/ViT_models/`
-- Locally: saves to `./models/` directory
-- Python 3.8+ required with CUDA recommended
-
-## Key Implementation Details
-
-### Validation Transform Fix
-The tutorial uses `Subset` instead of `random_split` to ensure validation data doesn't get augmentation:
-```python
-train_dataset = Subset(
-    datasets.CIFAR10(root='./data', train=True, transform=train_transform),
-    train_indices
-)
-val_dataset = Subset(
-    datasets.CIFAR10(root='./data', train=True, transform=val_transform),
-    val_indices
-)
-```
-
-### Mixed Precision Training
-```python
-scaler = GradScaler()
-with autocast(device_type='cuda', dtype=torch.float16):
-    outputs = model(images)
-    loss = criterion(outputs, labels)
-scaler.scale(loss).backward()
-scaler.step(optimizer)
-scaler.update()
-```
-
-### Attention Visualization
-The notebook includes functions to extract and visualize attention maps from ViT layers, showing which image patches the model focuses on for predictions.
+- Python 3.8+ required
+- GPU (CUDA) strongly recommended for training
+- Auto-detects device (CUDA/CPU)
+- Models saved to `./models/` by default

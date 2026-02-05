@@ -1,130 +1,232 @@
-# Fine-tuning Vision Transformers (ViT) with PyTorch
+# vit-trainer
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/jman4162/PyTorch-Vision-Transformers-ViT/blob/main/Fine_tuning_Vision_Transformers_ViT_with_PyTorch.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/jman4162/PyTorch-Vision-Transformers-ViT/blob/main/notebooks/tutorial.ipynb)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 
-A comprehensive, production-ready tutorial for fine-tuning Vision Transformer (ViT) models using PyTorch. Achieves **97.65% accuracy** on CIFAR-10 with modern training techniques.
+A simple, educational package for fine-tuning Vision Transformer (ViT) models using PyTorch. Achieves **97.65% accuracy** on CIFAR-10 with modern training techniques.
 
 ![ViT](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/transformers/model_doc/vit_architecture.jpg)
 
-## Features
+## Why vit-trainer?
 
-| Feature | Description |
-|---------|-------------|
-| **Mixed Precision Training (AMP)** | 2-3x speedup with FP16 |
-| **AdamW + Cosine Annealing** | Modern optimizer with warmup |
-| **Multiple ViT Variants** | vit_b_16, vit_b_32, vit_l_16 |
-| **Attention Visualization** | See what the model focuses on |
-| **ONNX Export** | Production deployment ready |
-| **Gradio Demo** | Interactive web interface |
-| **Proper Validation** | Fixed common random_split bug |
+| vs. timm/transformers | vit-trainer |
+|-----------------------|-------------|
+| 1000+ model architectures | Focused on ViT fine-tuning |
+| Complex APIs | Simple, readable code |
+| Research-oriented | Educational + Production ready |
+
+**Features:**
+- Mixed precision training (AMP) for 2-3x speedup
+- AdamW optimizer with cosine annealing + warmup
+- Attention visualization for interpretability
+- ONNX export for deployment
+- CLI and Python API
+
+## Installation
+
+```bash
+# Install from source
+git clone https://github.com/jman4162/PyTorch-Vision-Transformers-ViT.git
+cd PyTorch-Vision-Transformers-ViT
+pip install -e .
+
+# Or with all extras (gradio demo, ONNX export, dev tools)
+pip install -e ".[all]"
+```
 
 ## Quick Start
 
-### Option 1: Google Colab (Recommended)
+### Python API
 
-Click the "Open in Colab" badge above - no setup required!
+```python
+from vit_trainer import Trainer, load_model, get_cifar10_loaders
 
-### Option 2: Local Installation
+# Load data and model
+train_loader, val_loader, test_loader = get_cifar10_loaders(batch_size=64)
+model = load_model("vit_b_16", num_classes=10)
 
-```bash
-# Clone the repository
-git clone https://github.com/jman4162/PyTorch-Vision-Transformers-ViT.git
-cd PyTorch-Vision-Transformers-ViT
+# Train
+trainer = Trainer(model, lr=1e-4, use_amp=True)
+history = trainer.fit(train_loader, val_loader, epochs=10)
 
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Launch Jupyter
-jupyter notebook Fine_tuning_Vision_Transformers_ViT_with_PyTorch.ipynb
+# Evaluate
+loss, accuracy = trainer.evaluate(test_loader)
+print(f"Test Accuracy: {accuracy:.2f}%")
 ```
 
-### Option 3: Run the Gradio Demo
+### Command Line Interface
 
 ```bash
-# After training or with pretrained weights
-python app.py
-# Opens at http://localhost:7860
+# Train a model
+vit-train train --model vit_b_16 --dataset cifar10 --epochs 10
+
+# Evaluate a trained model
+vit-train eval --checkpoint best_model.pt --dataset cifar10 --plot-confusion
+
+# Predict on a single image
+vit-train predict --checkpoint best_model.pt --image cat.jpg --show-attention
+
+# Export to ONNX
+vit-train export --checkpoint best_model.pt --output model.onnx
 ```
 
-## Tutorial Structure
+### Configuration Files
 
-| Section | Description |
-|---------|-------------|
-| **Setup** | Install dependencies, configure environment |
-| **Data Preparation** | CIFAR-10 with proper train/val splits |
-| **Model Setup** | Load ViT variants, configure for 10 classes |
-| **Training** | AMP, warmup, cosine annealing, early stopping |
-| **Evaluation** | Accuracy, confusion matrix, classification report |
-| **Visualization** | Attention maps, misclassified examples |
-| **Deployment** | ONNX export, benchmarking, Gradio demo |
+```bash
+# Use YAML config
+vit-train train --config configs/default.yaml
+```
 
-## Results
+## Usage Examples
+
+### Training with Custom Settings
+
+```python
+from vit_trainer import Trainer, load_model, get_cifar10_loaders, TrainingConfig
+
+# Create config
+config = TrainingConfig(
+    model_variant="vit_b_16",
+    batch_size=64,
+    epochs=10,
+    lr=1e-4,
+    weight_decay=0.05,
+    warmup_epochs=2,
+    patience=3,
+    use_amp=True,
+)
+
+# Train
+train_loader, val_loader, _ = get_cifar10_loaders(batch_size=config.batch_size)
+model = load_model(config.model_variant, num_classes=10)
+trainer = Trainer(
+    model,
+    lr=config.lr,
+    weight_decay=config.weight_decay,
+    warmup_epochs=config.warmup_epochs,
+    use_amp=config.use_amp,
+)
+trainer.fit(train_loader, val_loader, epochs=config.epochs, patience=config.patience)
+```
+
+### Attention Visualization
+
+```python
+from vit_trainer import visualize_samples_with_attention, CIFAR10_CLASSES
+
+visualize_samples_with_attention(
+    model,
+    test_loader.dataset,
+    CIFAR10_CLASSES,
+    num_samples=4,
+)
+```
+
+### Evaluation Metrics
+
+```python
+from vit_trainer import get_predictions, compute_metrics, plot_confusion_matrix
+
+y_pred, y_true, probs = get_predictions(model, test_loader)
+metrics = compute_metrics(y_true, y_pred, CIFAR10_CLASSES)
+
+print(metrics["classification_report"])
+plot_confusion_matrix(y_true, y_pred, CIFAR10_CLASSES)
+```
+
+### Loading Trained Models
+
+```python
+from vit_trainer import load_model
+
+# Load from checkpoint
+model = load_model(
+    "vit_b_16",
+    num_classes=10,
+    checkpoint_path="best_model.pt",
+)
+```
+
+## Project Structure
+
+```
+vit-trainer/
+├── vit_trainer/
+│   ├── __init__.py         # Public API
+│   ├── config.py           # TrainingConfig dataclass
+│   ├── cli.py              # Command-line interface
+│   ├── data/               # Data loaders and transforms
+│   ├── models/             # Model registry and factory
+│   ├── training/           # Trainer and callbacks
+│   ├── evaluation/         # Metrics and plotting
+│   └── visualization/      # Attention maps
+├── tests/                  # Unit tests
+├── configs/                # YAML configurations
+├── notebooks/              # Tutorial notebooks
+├── app.py                  # Gradio demo
+└── pyproject.toml          # Package configuration
+```
+
+## ViT Variants
+
+| Variant | Patch Size | Parameters | ImageNet Acc | Use Case |
+|---------|------------|------------|--------------|----------|
+| `vit_b_16` | 16x16 | 86M | 81.1% | Best accuracy/speed |
+| `vit_b_32` | 32x32 | 88M | 75.9% | Faster inference |
+| `vit_l_16` | 16x16 | 304M | 79.7% | Higher accuracy |
+
+## Training Results
 
 | Metric | Value |
 |--------|-------|
 | **Test Accuracy** | 97.65% |
 | **Model** | vit_b_16 |
-| **Parameters** | 86M |
-| **Training** | ~11 min/epoch (GPU) |
+| **Training Time** | ~11 min/epoch (GPU) |
 
-### Training Configuration
+## Gradio Demo
 
-| Parameter | Value |
-|-----------|-------|
-| Optimizer | AdamW |
-| Learning Rate | 1e-4 |
-| Weight Decay | 0.05 |
-| Scheduler | Cosine + 2-epoch warmup |
-| Batch Size | 64 |
-| Mixed Precision | Enabled |
-| Early Stopping | patience=3 |
+```bash
+# Launch interactive web interface
+python app.py
+# Opens at http://localhost:7860
+```
 
-## ViT Variants
+## Development
 
-| Variant | Patch Size | Parameters | Use Case |
-|---------|------------|------------|----------|
-| `vit_b_16` | 16x16 | 86M | Best accuracy/speed balance |
-| `vit_b_32` | 32x32 | 88M | Faster, lower accuracy |
-| `vit_l_16` | 16x16 | 304M | Higher accuracy, more memory |
+```bash
+# Install dev dependencies
+pip install -e ".[dev]"
 
-## Key Files
+# Run tests
+pytest tests/
 
-| File | Description |
-|------|-------------|
-| `Fine_tuning_Vision_Transformers_ViT_with_PyTorch.ipynb` | Main tutorial notebook |
-| `app.py` | Standalone Gradio web demo |
-| `requirements.txt` | Python dependencies |
-| `CLAUDE.md` | AI assistant guidance |
+# Format code
+black vit_trainer/
+ruff check vit_trainer/
+
+# Type check
+mypy vit_trainer/
+```
 
 ## Troubleshooting
 
 ### CUDA Out of Memory
-- Reduce batch size: `batch_size = 32` or `16`
-- Mixed precision is enabled by default
+- Reduce batch size: `--batch-size 32` or `16`
+- AMP is enabled by default
 
 ### Slow Training on CPU
 - Use Google Colab (free GPU)
-- Training on CPU is very slow
+- Training on CPU is very slow (~60 min/epoch)
 
-### Model Not Saving
-- Check `models/` directory exists
-- In Colab, ensure Drive is mounted
+### Import Errors
+- Make sure to install the package: `pip install -e .`
 
-### ONNX Export Fails
-- Ensure model is on CPU before export
-- Use opset_version >= 14
-
-## Additional Resources
+## Resources
 
 - [Original ViT Paper](https://arxiv.org/abs/2010.11929)
-- [Hugging Face ViT](https://huggingface.co/docs/transformers/en/model_doc/vit)
 - [PyTorch ViT Documentation](https://pytorch.org/vision/main/models/vision_transformer.html)
-- [D2L AI - Attention Mechanisms](https://d2l.ai/chapter_attention-mechanisms-and-transformers/index.html)
+- [Hugging Face ViT](https://huggingface.co/docs/transformers/en/model_doc/vit)
 - [CIFAR-10 SOTA](https://paperswithcode.com/sota/image-classification-on-cifar-10)
 
 ## Contributing

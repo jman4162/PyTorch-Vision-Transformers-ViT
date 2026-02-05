@@ -1,59 +1,50 @@
-"""
-Gradio Web Interface for ViT Image Classifier
+"""Gradio Web Interface for ViT Image Classifier.
 
 Run with: python app.py
+Opens at: http://localhost:7860
 
 This creates an interactive web interface for classifying images
 using a fine-tuned Vision Transformer model.
 """
 
 import torch
-import torch.nn as nn
-from torchvision import transforms
-from torchvision.models import vit_b_16, ViT_B_16_Weights
 import gradio as gr
 from PIL import Image
-import numpy as np
 
-# CIFAR-10 class names
-CIFAR10_CLASSES = ['airplane', 'automobile', 'bird', 'cat', 'deer',
-                   'dog', 'frog', 'horse', 'ship', 'truck']
+from vit_trainer import (
+    load_model,
+    CIFAR10_CLASSES,
+    get_val_transform,
+    visualize_attention,
+    show_attention_on_image,
+)
 
-# Device
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+# Configuration
+MODEL_VARIANT = "vit_b_16"
+MODEL_PATH = "best_model_vit_b_16_cifar10.pt"
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# Image transform (same as validation transform)
-transform = transforms.Compose([
-    transforms.Resize((224, 224)),
-    transforms.ToTensor(),
-    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-])
+# Load model
+try:
+    model = load_model(
+        MODEL_VARIANT,
+        num_classes=10,
+        checkpoint_path=MODEL_PATH,
+        device=DEVICE,
+    )
+    print(f"Loaded model from {MODEL_PATH}")
+except FileNotFoundError:
+    model = load_model(MODEL_VARIANT, num_classes=10, device=DEVICE)
+    print(f"Warning: {MODEL_PATH} not found. Using pretrained weights only.")
 
+model.eval()
 
-def load_model(model_path="best_model_vit_b_16_cifar10.pt"):
-    """Load the fine-tuned ViT model."""
-    model = vit_b_16(weights=ViT_B_16_Weights.IMAGENET1K_V1)
-    model.heads.head = nn.Linear(model.heads.head.in_features, 10)
-
-    try:
-        state_dict = torch.load(model_path, map_location=device, weights_only=True)
-        model.load_state_dict(state_dict)
-        print(f"Loaded model from {model_path}")
-    except FileNotFoundError:
-        print(f"Warning: {model_path} not found. Using pretrained weights only.")
-
-    model.to(device)
-    model.eval()
-    return model
-
-
-# Load model globally
-model = load_model()
+# Image transform
+transform = get_val_transform(image_size=224)
 
 
-def predict(image):
-    """
-    Predict class for an uploaded image.
+def predict(image: Image.Image) -> dict:
+    """Predict class for an uploaded image.
 
     Args:
         image: PIL Image from Gradio
@@ -65,7 +56,7 @@ def predict(image):
         return {cls: 0.0 for cls in CIFAR10_CLASSES}
 
     # Preprocess
-    input_tensor = transform(image).unsqueeze(0).to(device)
+    input_tensor = transform(image).unsqueeze(0).to(DEVICE)
 
     # Predict
     with torch.no_grad():
@@ -76,9 +67,8 @@ def predict(image):
     return {CIFAR10_CLASSES[i]: float(probs[i]) for i in range(10)}
 
 
-def predict_with_attention(image):
-    """
-    Predict class and show attention visualization.
+def predict_with_attention(image: Image.Image):
+    """Predict class and show attention visualization.
 
     Args:
         image: PIL Image from Gradio
@@ -90,7 +80,7 @@ def predict_with_attention(image):
         return {cls: 0.0 for cls in CIFAR10_CLASSES}, None
 
     # Preprocess
-    input_tensor = transform(image).unsqueeze(0).to(device)
+    input_tensor = transform(image).unsqueeze(0).to(DEVICE)
 
     # Predict
     with torch.no_grad():
@@ -99,38 +89,71 @@ def predict_with_attention(image):
 
     predictions = {CIFAR10_CLASSES[i]: float(probs[i]) for i in range(10)}
 
-    # Get attention (simplified - just return resized image for now)
-    # Full attention extraction requires more complex hook setup
+    # Get attention map
+    attn_map = visualize_attention(model, input_tensor[0], device=DEVICE)
+    if attn_map is not None:
+        overlay = show_attention_on_image(image.resize((224, 224)), attn_map)
+        return predictions, Image.fromarray(overlay)
+
     return predictions, image.resize((224, 224))
 
 
 # Create Gradio interface
-demo = gr.Interface(
-    fn=predict,
-    inputs=gr.Image(type="pil", label="Upload an Image"),
-    outputs=gr.Label(num_top_classes=5, label="Predictions"),
-    title="Vision Transformer Image Classifier",
-    description="""
-    Upload an image to classify it using a fine-tuned Vision Transformer (ViT).
+with gr.Blocks(title="ViT Image Classifier") as demo:
+    gr.Markdown(
+        """
+        # Vision Transformer Image Classifier
 
-    **Model**: vit_b_16 fine-tuned on CIFAR-10
+        Upload an image to classify it using a fine-tuned Vision Transformer (ViT).
 
-    **Classes**: airplane, automobile, bird, cat, deer, dog, frog, horse, ship, truck
+        **Model**: vit_b_16 fine-tuned on CIFAR-10
 
-    **Note**: This model was trained on 32x32 CIFAR-10 images. For best results,
-    use images of single objects similar to the training data.
-    """,
-    examples=[],
-    theme="default",
-    allow_flagging="never"
-)
+        **Classes**: airplane, automobile, bird, cat, deer, dog, frog, horse, ship, truck
+
+        **Note**: This model was trained on 32x32 CIFAR-10 images. For best results,
+        use images of single objects similar to the training data.
+        """
+    )
+
+    with gr.Tab("Simple Classification"):
+        with gr.Row():
+            with gr.Column():
+                input_image = gr.Image(type="pil", label="Upload an Image")
+                classify_btn = gr.Button("Classify", variant="primary")
+            with gr.Column():
+                output_label = gr.Label(num_top_classes=5, label="Predictions")
+
+        classify_btn.click(predict, inputs=input_image, outputs=output_label)
+        input_image.change(predict, inputs=input_image, outputs=output_label)
+
+    with gr.Tab("With Attention Visualization"):
+        with gr.Row():
+            with gr.Column():
+                input_image_attn = gr.Image(type="pil", label="Upload an Image")
+                classify_attn_btn = gr.Button("Classify with Attention", variant="primary")
+            with gr.Column():
+                output_label_attn = gr.Label(num_top_classes=5, label="Predictions")
+                output_attention = gr.Image(type="pil", label="Attention Overlay")
+
+        classify_attn_btn.click(
+            predict_with_attention,
+            inputs=input_image_attn,
+            outputs=[output_label_attn, output_attention],
+        )
+
+    gr.Markdown(
+        """
+        ---
+        Built with [vit-trainer](https://github.com/jman4162/PyTorch-Vision-Transformers-ViT)
+        """
+    )
 
 
 if __name__ == "__main__":
-    print(f"Running on device: {device}")
+    print(f"Running on device: {DEVICE}")
     print("Starting Gradio interface...")
     demo.launch(
         server_name="0.0.0.0",
         server_port=7860,
-        share=False
+        share=False,
     )

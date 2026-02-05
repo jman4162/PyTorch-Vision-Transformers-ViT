@@ -39,11 +39,11 @@ Thumbs.db
 *.swp
 *.swo
 
-# Data and models
-data/
+# Data and models (root level only, not package subdirs)
+/data/
 *.pt
 *.pth
-models/
+/models/
 
 # Logs
 *.log

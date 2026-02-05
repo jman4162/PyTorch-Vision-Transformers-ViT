@@ -1,0 +1,130 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vit-trainer"
+version = "0.1.0"
+description = "A simple, educational package for fine-tuning Vision Transformers"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "John Hodge", email = "john@example.com"}
+]
+maintainers = [
+    {name = "John Hodge", email = "john@example.com"}
+]
+keywords = [
+    "vision-transformer",
+    "vit",
+    "deep-learning",
+    "pytorch",
+    "image-classification",
+    "transfer-learning",
+    "fine-tuning",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Education",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Scientific/Engineering :: Image Recognition",
+]
+requires-python = ">=3.8"
+dependencies = [
+    "torch>=2.0.0",
+    "torchvision>=0.15.0",
+    "numpy>=1.24.0",
+    "tqdm>=4.65.0",
+    "Pillow>=9.4.0",
+    "scikit-learn>=1.2.0",
+    "matplotlib>=3.7.0",
+    "seaborn>=0.12.0",
+    "PyYAML>=6.0",
+]
+
+[project.optional-dependencies]
+demo = [
+    "gradio>=4.0.0",
+]
+export = [
+    "onnx>=1.14.0",
+    "onnxruntime>=1.15.0",
+]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "ruff>=0.1.0",
+    "black>=23.0.0",
+    "mypy>=1.0.0",
+    "pre-commit>=3.0.0",
+]
+all = [
+    "vit-trainer[demo,export,dev]",
+]
+
+[project.scripts]
+vit-train = "vit_trainer.cli:main"
+vit-eval = "vit_trainer.cli:main"
+vit-predict = "vit_trainer.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/jman4162/PyTorch-Vision-Transformers-ViT"
+Documentation = "https://github.com/jman4162/PyTorch-Vision-Transformers-ViT#readme"
+Repository = "https://github.com/jman4162/PyTorch-Vision-Transformers-ViT"
+Issues = "https://github.com/jman4162/PyTorch-Vision-Transformers-ViT/issues"
+
+[tool.setuptools.packages.find]
+include = ["vit_trainer*"]
+
+[tool.setuptools.package-data]
+vit_trainer = ["py.typed"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "-v --tb=short"
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::UserWarning",
+]
+
+[tool.ruff]
+target-version = "py38"
+line-length = 88
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # Pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+]
+ignore = [
+    "E501",  # line too long (handled by black)
+    "B008",  # do not perform function calls in argument defaults
+    "C901",  # too complex
+]
+
+[tool.ruff.isort]
+known-first-party = ["vit_trainer"]
+
+[tool.black]
+line-length = 88
+target-version = ["py38", "py39", "py310", "py311"]
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true

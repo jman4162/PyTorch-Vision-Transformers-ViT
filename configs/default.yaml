@@ -1,0 +1,35 @@
+# Default training configuration for vit-trainer
+# Usage: vit-train train --config configs/default.yaml
+
+# Model settings
+model_variant: vit_b_16    # Options: vit_b_16, vit_b_32, vit_l_16
+num_classes: 10
+compile_model: false       # Use torch.compile (PyTorch 2.x)
+
+# Training settings
+batch_size: 64
+epochs: 10
+lr: 0.0001                 # 1e-4, standard for ViT fine-tuning
+weight_decay: 0.05         # AdamW weight decay
+warmup_epochs: 2           # Linear LR warmup
+patience: 3                # Early stopping patience
+use_amp: true              # Mixed precision training
+gradient_clip: 1.0         # Max gradient norm
+
+# Reproducibility
+seed: 42
+
+# Data settings
+dataset: cifar10           # Options: cifar10, cifar100
+data_dir: ./data
+train_split: 0.8           # Fraction for training (rest for validation)
+
+# System settings
+model_dir: ./models
+num_workers: 4
+pin_memory: true
+device: auto               # auto, cuda, cpu
+
+# Augmentation settings
+augment_train: true
+image_size: 224
