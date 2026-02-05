@@ -2,14 +2,15 @@
 
 import time
 from pathlib import Path
-from typing import Optional, List, Dict, Tuple, Callable, Any
+from typing import Dict, List, Optional, Tuple
+
 import numpy as np
 import torch
 from torch import nn
-from torch.utils.data import DataLoader
+from torch.amp import GradScaler, autocast
 from torch.optim import AdamW, Optimizer
-from torch.optim.lr_scheduler import LambdaLR, _LRScheduler
-from torch.amp import autocast, GradScaler
+from torch.optim.lr_scheduler import LambdaLR
+from torch.utils.data import DataLoader
 from tqdm.auto import tqdm
 
 from .callbacks import EarlyStopping, ModelCheckpoint

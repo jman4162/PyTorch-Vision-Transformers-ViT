@@ -1,9 +1,9 @@
 """Evaluation metrics and utilities."""
 
 from .metrics import (
+    compute_metrics,
     evaluate_model,
     get_predictions,
-    compute_metrics,
     plot_confusion_matrix,
 )
 

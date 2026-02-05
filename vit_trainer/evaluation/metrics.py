@@ -1,6 +1,7 @@
 """Evaluation metrics and utilities."""
 
-from typing import Tuple, List, Optional, Dict, Any
+from typing import Any, Dict, List, Optional, Tuple
+
 import numpy as np
 import torch
 from torch import nn
@@ -113,9 +114,9 @@ def compute_metrics(
     """
     from sklearn.metrics import (
         accuracy_score,
-        precision_recall_fscore_support,
         classification_report,
         confusion_matrix,
+        precision_recall_fscore_support,
     )
 
     accuracy = accuracy_score(y_true, y_pred)

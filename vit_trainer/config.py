@@ -1,8 +1,9 @@
 """Configuration management for ViT training."""
 
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Optional, List, Union
+from typing import Union
+
 import yaml
 
 

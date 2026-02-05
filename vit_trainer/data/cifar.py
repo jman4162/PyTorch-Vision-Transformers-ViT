@@ -1,13 +1,12 @@
 """CIFAR-10/100 data loading utilities."""
 
-from typing import Tuple, Optional
+from typing import Optional, Tuple
+
 import numpy as np
-import torch
 from torch.utils.data import DataLoader, Subset
 from torchvision import datasets
 
 from .transforms import get_train_transform, get_val_transform
-
 
 # CIFAR-10 class names
 CIFAR10_CLASSES = [

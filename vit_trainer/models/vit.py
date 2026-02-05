@@ -1,17 +1,17 @@
 """Vision Transformer model registry and factory functions."""
 
-from typing import Dict, Tuple, Optional, Any
+from typing import Any, Dict, Optional, Tuple
+
 import torch
 from torch import nn
 from torchvision.models import (
-    vit_b_16,
-    vit_b_32,
-    vit_l_16,
     ViT_B_16_Weights,
     ViT_B_32_Weights,
     ViT_L_16_Weights,
+    vit_b_16,
+    vit_b_32,
+    vit_l_16,
 )
-
 
 # Model registry: variant -> (model_fn, weights, info)
 VIT_VARIANTS: Dict[str, Tuple[Any, Any, Dict[str, Any]]] = {

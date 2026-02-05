@@ -1,13 +1,14 @@
 """Attention map visualization for Vision Transformers."""
 
-from typing import Optional, Tuple, List
+from typing import List, Optional
+
+import matplotlib.pyplot as plt
 import numpy as np
 import torch
-from torch import nn
 from PIL import Image
-import matplotlib.pyplot as plt
+from torch import nn
 
-from ..data.transforms import get_val_transform, denormalize
+from ..data.transforms import denormalize
 
 
 def visualize_attention(
@@ -76,7 +77,7 @@ def visualize_attention(
             qkv_out = qkv_out.reshape(n, -1, 3, num_heads, head_dim).permute(
                 2, 0, 3, 1, 4
             )
-            q, k, v = qkv_out[0], qkv_out[1], qkv_out[2]
+            q, k, _v = qkv_out[0], qkv_out[1], qkv_out[2]
 
             # Compute attention weights
             scale = head_dim**-0.5
@@ -255,8 +256,6 @@ def get_attention_rollout(
     for layer_idx in range(len(model.encoder.layers)):
         attn = visualize_attention(model, image, layer_idx=layer_idx, device=device)
         if attn is not None:
-            # Convert to full attention matrix (add identity for residual)
-            num_patches = attn.shape[0] * attn.shape[1]
             attn_flat = attn.flatten()
             # Normalize
             attn_flat = attn_flat / (attn_flat.sum() + 1e-8)

@@ -1,7 +1,8 @@
 """Training callbacks for monitoring and checkpointing."""
 
 from pathlib import Path
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
+
 import torch
 
 
@@ -105,7 +106,7 @@ class EarlyStopping(Callback):
             if self.counter >= self.patience:
                 self.stopped_epoch = epoch
                 if self.verbose:
-                    print(f"  Early stopping triggered!")
+                    print("  Early stopping triggered!")
                 return False
 
         return None

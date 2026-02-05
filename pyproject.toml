@@ -101,6 +101,8 @@ filterwarnings = [
 [tool.ruff]
 target-version = "py38"
 line-length = 88
+
+[tool.ruff.lint]
 select = [
     "E",   # pycodestyle errors
     "W",   # pycodestyle warnings
@@ -116,7 +118,7 @@ ignore = [
     "C901",  # too complex
 ]
 
-[tool.ruff.isort]
+[tool.ruff.lint.isort]
 known-first-party = ["vit_trainer"]
 
 [tool.black]

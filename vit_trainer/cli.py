@@ -2,7 +2,6 @@
 
 import argparse
 import sys
-from pathlib import Path
 
 
 def get_parser() -> argparse.ArgumentParser:
@@ -145,13 +144,14 @@ def get_parser() -> argparse.ArgumentParser:
 
 def cmd_train(args: argparse.Namespace) -> int:
     """Run training command."""
-    import torch
-    import numpy as np
     import random
 
+    import numpy as np
+    import torch
+
     from .config import TrainingConfig
-    from .models import load_model
     from .data import get_cifar10_loaders, get_cifar100_loaders
+    from .models import load_model
     from .training import Trainer
 
     # Load config from file or args
@@ -180,7 +180,7 @@ def cmd_train(args: argparse.Namespace) -> int:
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(config.seed)
 
-    print(f"Training Configuration:")
+    print("Training Configuration:")
     print(f"  Model: {config.model_variant}")
     print(f"  Dataset: {config.dataset}")
     print(f"  Epochs: {config.epochs}")
@@ -221,7 +221,7 @@ def cmd_train(args: argparse.Namespace) -> int:
     )
 
     # Train
-    history = trainer.fit(
+    trainer.fit(
         train_loader,
         val_loader,
         epochs=config.epochs,
@@ -238,9 +238,19 @@ def cmd_train(args: argparse.Namespace) -> int:
 
 def cmd_eval(args: argparse.Namespace) -> int:
     """Run evaluation command."""
+    from .data import (
+        CIFAR10_CLASSES,
+        CIFAR100_CLASSES,
+        get_cifar10_loaders,
+        get_cifar100_loaders,
+    )
+    from .evaluation import (
+        evaluate_model,
+        get_predictions,
+        plot_confusion_matrix,
+        print_classification_report,
+    )
     from .models import load_model
-    from .data import get_cifar10_loaders, get_cifar100_loaders, CIFAR10_CLASSES, CIFAR100_CLASSES
-    from .evaluation import evaluate_model, get_predictions, print_classification_report, plot_confusion_matrix
 
     # Get data
     num_classes = 10 if args.dataset == "cifar10" else 100
@@ -286,9 +296,9 @@ def cmd_predict(args: argparse.Namespace) -> int:
     import torch
     from PIL import Image
 
-    from .models import load_model
     from .data import CIFAR10_CLASSES, CIFAR100_CLASSES
     from .data.transforms import get_val_transform
+    from .models import load_model
 
     # Get class names
     num_classes = 10 if args.dataset == "cifar10" else 100
@@ -324,8 +334,9 @@ def cmd_predict(args: argparse.Namespace) -> int:
 
     # Show attention if requested
     if args.show_attention:
-        from .visualization import visualize_attention, show_attention_on_image
         import matplotlib.pyplot as plt
+
+        from .visualization import show_attention_on_image, visualize_attention
 
         attn_map = visualize_attention(model, input_tensor[0], device=device)
         if attn_map is not None:
