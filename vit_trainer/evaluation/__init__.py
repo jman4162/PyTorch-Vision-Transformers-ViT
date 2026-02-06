@@ -5,6 +5,7 @@ from .metrics import (
     evaluate_model,
     get_predictions,
     plot_confusion_matrix,
+    plot_training_history,
     print_classification_report,
 )
 
@@ -13,5 +14,6 @@ __all__ = [
     "get_predictions",
     "compute_metrics",
     "plot_confusion_matrix",
+    "plot_training_history",
     "print_classification_report",
 ]
