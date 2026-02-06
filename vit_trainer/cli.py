@@ -31,12 +31,8 @@ def get_parser() -> argparse.ArgumentParser:
     train_parser.add_argument(
         "--epochs", type=int, default=10, help="Number of training epochs"
     )
-    train_parser.add_argument(
-        "--batch-size", type=int, default=64, help="Batch size"
-    )
-    train_parser.add_argument(
-        "--lr", type=float, default=1e-4, help="Learning rate"
-    )
+    train_parser.add_argument("--batch-size", type=int, default=64, help="Batch size")
+    train_parser.add_argument("--lr", type=float, default=1e-4, help="Learning rate")
     train_parser.add_argument(
         "--weight-decay", type=float, default=0.05, help="Weight decay"
     )
@@ -49,18 +45,14 @@ def get_parser() -> argparse.ArgumentParser:
     train_parser.add_argument(
         "--no-amp", action="store_true", help="Disable mixed precision training"
     )
-    train_parser.add_argument(
-        "--seed", type=int, default=42, help="Random seed"
-    )
+    train_parser.add_argument("--seed", type=int, default=42, help="Random seed")
     train_parser.add_argument(
         "--data-dir", type=str, default="./data", help="Data directory"
     )
     train_parser.add_argument(
         "--model-dir", type=str, default="./models", help="Model save directory"
     )
-    train_parser.add_argument(
-        "--config", type=str, help="Path to YAML config file"
-    )
+    train_parser.add_argument("--config", type=str, help="Path to YAML config file")
 
     # Eval command
     eval_parser = subparsers.add_parser("eval", help="Evaluate a trained model")
@@ -81,9 +73,7 @@ def get_parser() -> argparse.ArgumentParser:
         choices=["cifar10", "cifar100"],
         help="Dataset to use",
     )
-    eval_parser.add_argument(
-        "--batch-size", type=int, default=64, help="Batch size"
-    )
+    eval_parser.add_argument("--batch-size", type=int, default=64, help="Batch size")
     eval_parser.add_argument(
         "--data-dir", type=str, default="./data", help="Data directory"
     )
@@ -204,7 +194,9 @@ def cmd_train(args: argparse.Namespace) -> int:
             seed=config.seed,
         )
 
-    print(f"Data loaded: {len(train_loader.dataset)} train, {len(val_loader.dataset)} val, {len(test_loader.dataset)} test")
+    print(
+        f"Data loaded: {len(train_loader.dataset)} train, {len(val_loader.dataset)} val, {len(test_loader.dataset)} test"
+    )
 
     # Load model
     model = load_model(config.model_variant, num_classes=num_classes)
@@ -399,12 +391,14 @@ def cmd_export(args: argparse.Namespace) -> int:
 
     # Verify
     import onnx
+
     onnx_model = onnx.load(args.output)
     onnx.checker.check_model(onnx_model)
     print("ONNX model validation passed!")
 
     # File size
     import os
+
     size_mb = os.path.getsize(args.output) / (1024 * 1024)
     print(f"Model size: {size_mb:.2f} MB")
 

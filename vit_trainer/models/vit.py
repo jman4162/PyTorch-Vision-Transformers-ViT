@@ -68,8 +68,7 @@ def get_model_info(variant: str) -> Dict[str, Any]:
     """
     if variant not in VIT_VARIANTS:
         raise ValueError(
-            f"Unknown variant: {variant}. "
-            f"Choose from {list(VIT_VARIANTS.keys())}"
+            f"Unknown variant: {variant}. " f"Choose from {list(VIT_VARIANTS.keys())}"
         )
     return VIT_VARIANTS[variant][2]
 
@@ -104,8 +103,7 @@ def load_model(
     """
     if variant not in VIT_VARIANTS:
         raise ValueError(
-            f"Unknown variant: {variant}. "
-            f"Choose from {list(VIT_VARIANTS.keys())}"
+            f"Unknown variant: {variant}. " f"Choose from {list(VIT_VARIANTS.keys())}"
         )
 
     model_fn, weights, _ = VIT_VARIANTS[variant]

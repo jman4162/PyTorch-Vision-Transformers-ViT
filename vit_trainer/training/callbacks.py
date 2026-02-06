@@ -178,9 +178,7 @@ class ModelCheckpoint(Callback):
 
         return None
 
-    def _save_model(
-        self, trainer: Any, epoch: int, logs: Dict[str, float]
-    ) -> None:
+    def _save_model(self, trainer: Any, epoch: int, logs: Dict[str, float]) -> None:
         # Format filepath with epoch and metrics
         filepath_str = str(self.filepath)
         filepath_str = filepath_str.format(

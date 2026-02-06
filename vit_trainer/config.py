@@ -29,6 +29,7 @@ class TrainingConfig:
         num_workers: DataLoader workers
         pin_memory: Pin memory for faster GPU transfer
     """
+
     # Model settings
     model_variant: str = "vit_b_16"
     num_classes: int = 10
@@ -120,6 +121,7 @@ class ExportConfig:
         dynamic_batch: Enable dynamic batch size
         optimize: Apply optimizations
     """
+
     format: str = "onnx"
     opset_version: int = 14
     dynamic_batch: bool = True

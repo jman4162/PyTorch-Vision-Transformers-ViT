@@ -144,9 +144,7 @@ def compute_metrics(
                 "f1": f,
                 "support": int(s),
             }
-            for name, p, r, f, s in zip(
-                class_names, precision, recall, f1, support
-            )
+            for name, p, r, f, s in zip(class_names, precision, recall, f1, support)
         }
 
     return metrics

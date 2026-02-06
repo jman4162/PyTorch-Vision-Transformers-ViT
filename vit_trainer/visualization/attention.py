@@ -190,7 +190,9 @@ def visualize_samples_with_attention(
             confidence = probs[0, pred_idx].item()
 
         # Get attention map
-        attn_map = visualize_attention(model, img_tensor, layer_idx=layer_idx, device=device)
+        attn_map = visualize_attention(
+            model, img_tensor, layer_idx=layer_idx, device=device
+        )
 
         # Plot original image
         axes[i, 0].imshow(img_pil)

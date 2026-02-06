@@ -80,9 +80,7 @@ class Trainer:
 
         # Setup optimizer
         if optimizer is None:
-            self.optimizer = AdamW(
-                model.parameters(), lr=lr, weight_decay=weight_decay
-            )
+            self.optimizer = AdamW(model.parameters(), lr=lr, weight_decay=weight_decay)
         else:
             self.optimizer = optimizer
 
@@ -90,11 +88,7 @@ class Trainer:
         self.criterion = nn.CrossEntropyLoss()
 
         # Mixed precision scaler
-        self.scaler = (
-            GradScaler()
-            if use_amp and self.device.type == "cuda"
-            else None
-        )
+        self.scaler = GradScaler() if use_amp and self.device.type == "cuda" else None
 
         # Callbacks
         self.callbacks = callbacks or []
@@ -107,10 +101,9 @@ class Trainer:
             "lr": [],
         }
 
-    def _get_warmup_scheduler(
-        self, total_epochs: int
-    ) -> LambdaLR:
+    def _get_warmup_scheduler(self, total_epochs: int) -> LambdaLR:
         """Create learning rate scheduler with warmup and cosine decay."""
+
         def lr_lambda(epoch: int) -> float:
             if epoch < self.warmup_epochs:
                 # Linear warmup
@@ -367,8 +360,6 @@ class Trainer:
         Args:
             filepath: Path to model file
         """
-        state_dict = torch.load(
-            filepath, map_location=self.device, weights_only=True
-        )
+        state_dict = torch.load(filepath, map_location=self.device, weights_only=True)
         self.model.load_state_dict(state_dict)
         print(f"Model loaded from {filepath}")

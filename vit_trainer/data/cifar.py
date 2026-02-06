@@ -24,20 +24,106 @@ CIFAR10_CLASSES = [
 
 # CIFAR-100 superclass names
 CIFAR100_CLASSES = [
-    "apple", "aquarium_fish", "baby", "bear", "beaver", "bed", "bee", "beetle",
-    "bicycle", "bottle", "bowl", "boy", "bridge", "bus", "butterfly", "camel",
-    "can", "castle", "caterpillar", "cattle", "chair", "chimpanzee", "clock",
-    "cloud", "cockroach", "couch", "crab", "crocodile", "cup", "dinosaur",
-    "dolphin", "elephant", "flatfish", "forest", "fox", "girl", "hamster",
-    "house", "kangaroo", "keyboard", "lamp", "lawn_mower", "leopard", "lion",
-    "lizard", "lobster", "man", "maple_tree", "motorcycle", "mountain", "mouse",
-    "mushroom", "oak_tree", "orange", "orchid", "otter", "palm_tree", "pear",
-    "pickup_truck", "pine_tree", "plain", "plate", "poppy", "porcupine",
-    "possum", "rabbit", "raccoon", "ray", "road", "rocket", "rose", "sea",
-    "seal", "shark", "shrew", "skunk", "skyscraper", "snail", "snake", "spider",
-    "squirrel", "streetcar", "sunflower", "sweet_pepper", "table", "tank",
-    "telephone", "television", "tiger", "tractor", "train", "trout", "tulip",
-    "turtle", "wardrobe", "whale", "willow_tree", "wolf", "woman", "worm",
+    "apple",
+    "aquarium_fish",
+    "baby",
+    "bear",
+    "beaver",
+    "bed",
+    "bee",
+    "beetle",
+    "bicycle",
+    "bottle",
+    "bowl",
+    "boy",
+    "bridge",
+    "bus",
+    "butterfly",
+    "camel",
+    "can",
+    "castle",
+    "caterpillar",
+    "cattle",
+    "chair",
+    "chimpanzee",
+    "clock",
+    "cloud",
+    "cockroach",
+    "couch",
+    "crab",
+    "crocodile",
+    "cup",
+    "dinosaur",
+    "dolphin",
+    "elephant",
+    "flatfish",
+    "forest",
+    "fox",
+    "girl",
+    "hamster",
+    "house",
+    "kangaroo",
+    "keyboard",
+    "lamp",
+    "lawn_mower",
+    "leopard",
+    "lion",
+    "lizard",
+    "lobster",
+    "man",
+    "maple_tree",
+    "motorcycle",
+    "mountain",
+    "mouse",
+    "mushroom",
+    "oak_tree",
+    "orange",
+    "orchid",
+    "otter",
+    "palm_tree",
+    "pear",
+    "pickup_truck",
+    "pine_tree",
+    "plain",
+    "plate",
+    "poppy",
+    "porcupine",
+    "possum",
+    "rabbit",
+    "raccoon",
+    "ray",
+    "road",
+    "rocket",
+    "rose",
+    "sea",
+    "seal",
+    "shark",
+    "shrew",
+    "skunk",
+    "skyscraper",
+    "snail",
+    "snake",
+    "spider",
+    "squirrel",
+    "streetcar",
+    "sunflower",
+    "sweet_pepper",
+    "table",
+    "tank",
+    "telephone",
+    "television",
+    "tiger",
+    "tractor",
+    "train",
+    "trout",
+    "tulip",
+    "turtle",
+    "wardrobe",
+    "whale",
+    "willow_tree",
+    "wolf",
+    "woman",
+    "worm",
 ]
 
 
@@ -80,7 +166,11 @@ def get_cifar10_loaders(
         np.random.seed(seed)
 
     # Get transforms
-    train_transform = get_train_transform(image_size) if augment_train else get_val_transform(image_size)
+    train_transform = (
+        get_train_transform(image_size)
+        if augment_train
+        else get_val_transform(image_size)
+    )
     val_transform = get_val_transform(image_size)
 
     # Download dataset once
@@ -106,9 +196,7 @@ def get_cifar10_loaders(
         datasets.CIFAR10(root=data_dir, train=True, transform=val_transform),
         val_indices,
     )
-    test_dataset = datasets.CIFAR10(
-        root=data_dir, train=False, transform=val_transform
-    )
+    test_dataset = datasets.CIFAR10(root=data_dir, train=False, transform=val_transform)
 
     # Create data loaders
     train_loader = DataLoader(
@@ -164,7 +252,11 @@ def get_cifar100_loaders(
     if seed is not None:
         np.random.seed(seed)
 
-    train_transform = get_train_transform(image_size) if augment_train else get_val_transform(image_size)
+    train_transform = (
+        get_train_transform(image_size)
+        if augment_train
+        else get_val_transform(image_size)
+    )
     val_transform = get_val_transform(image_size)
 
     datasets.CIFAR100(root=data_dir, train=True, download=True)

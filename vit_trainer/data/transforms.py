@@ -33,14 +33,14 @@ def get_train_transform(
         transform_list.append(transforms.RandomRotation(rotation))
 
     if color_jitter:
-        transform_list.append(
-            transforms.ColorJitter(brightness=0.2, contrast=0.2)
-        )
+        transform_list.append(transforms.ColorJitter(brightness=0.2, contrast=0.2))
 
-    transform_list.extend([
-        transforms.ToTensor(),
-        transforms.Normalize(mean=IMAGENET_MEAN, std=IMAGENET_STD),
-    ])
+    transform_list.extend(
+        [
+            transforms.ToTensor(),
+            transforms.Normalize(mean=IMAGENET_MEAN, std=IMAGENET_STD),
+        ]
+    )
 
     return transforms.Compose(transform_list)
 
@@ -54,11 +54,13 @@ def get_val_transform(image_size: int = 224) -> transforms.Compose:
     Returns:
         Composed transform for validation/test data
     """
-    return transforms.Compose([
-        transforms.Resize((image_size, image_size)),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=IMAGENET_MEAN, std=IMAGENET_STD),
-    ])
+    return transforms.Compose(
+        [
+            transforms.Resize((image_size, image_size)),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=IMAGENET_MEAN, std=IMAGENET_STD),
+        ]
+    )
 
 
 def get_inference_transform(image_size: int = 224) -> transforms.Compose:
