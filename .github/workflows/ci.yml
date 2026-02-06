@@ -80,4 +80,4 @@ jobs:
 
       - name: Type check with mypy
         run: |
-          mypy vit_trainer/ --ignore-missing-imports
+          mypy vit_trainer/ --ignore-missing-imports --no-site-packages
