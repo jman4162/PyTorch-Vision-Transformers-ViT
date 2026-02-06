@@ -1,5 +1,6 @@
 # vit-trainer
 
+[![PyPI](https://img.shields.io/pypi/v/vit-trainer.svg)](https://pypi.org/project/vit-trainer/)
 [![CI](https://github.com/jman4162/PyTorch-Vision-Transformers-ViT/actions/workflows/ci.yml/badge.svg)](https://github.com/jman4162/PyTorch-Vision-Transformers-ViT/actions/workflows/ci.yml)
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/jman4162/PyTorch-Vision-Transformers-ViT/blob/main/notebooks/tutorial.ipynb)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -27,26 +28,28 @@ A simple, educational package for fine-tuning Vision Transformer (ViT) models us
 ## Installation
 
 ```bash
-# Install from source
-git clone https://github.com/jman4162/PyTorch-Vision-Transformers-ViT.git
-cd PyTorch-Vision-Transformers-ViT
-pip install -e .
+pip install vit-trainer
 ```
 
 ### Optional Dependencies
 
 ```bash
 # Gradio web demo
-pip install -e ".[demo]"
+pip install "vit-trainer[demo]"
 
 # ONNX export
-pip install -e ".[export]"
-
-# Development tools (pytest, ruff, black, mypy)
-pip install -e ".[dev]"
+pip install "vit-trainer[export]"
 
 # Everything
-pip install -e ".[all]"
+pip install "vit-trainer[all]"
+```
+
+### Install from Source
+
+```bash
+git clone https://github.com/jman4162/PyTorch-Vision-Transformers-ViT.git
+cd PyTorch-Vision-Transformers-ViT
+pip install -e ".[dev]"
 ```
 
 ## Quick Start
@@ -282,7 +285,7 @@ mypy vit_trainer/
 - Training on CPU is very slow (~60 min/epoch)
 
 ### Import Errors
-- Make sure to install the package: `pip install -e .`
+- Make sure to install the package: `pip install vit-trainer`
 
 ## Resources
 
