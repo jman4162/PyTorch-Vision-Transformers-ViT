@@ -6,6 +6,7 @@ import numpy as np
 
 from vit_trainer.data import (
     get_cifar10_loaders,
+    make_split_indices,
     CIFAR10_CLASSES,
     CIFAR100_CLASSES,
     get_train_transform,
@@ -14,6 +15,35 @@ from vit_trainer.data import (
     IMAGENET_STD,
 )
 from vit_trainer.data.transforms import denormalize
+
+
+class TestSplitIndices:
+    """Tests for the deterministic train/val split."""
+
+    def test_split_sizes(self):
+        train, val = make_split_indices(1000, train_split=0.8, seed=0)
+        assert len(train) == 800
+        assert len(val) == 200
+
+    def test_partition_is_complete_and_disjoint(self):
+        train, val = make_split_indices(1000, train_split=0.8, seed=0)
+        assert set(train).isdisjoint(val)
+        assert sorted(train + val) == list(range(1000))
+
+    def test_same_seed_same_split(self):
+        assert make_split_indices(1000, seed=42) == make_split_indices(1000, seed=42)
+
+    def test_different_seed_different_split(self):
+        assert make_split_indices(1000, seed=1) != make_split_indices(1000, seed=2)
+
+    def test_does_not_touch_the_global_rng(self):
+        """Loading data used to call np.random.seed, reseeding the process."""
+        np.random.seed(1234)
+        expected = np.random.rand(3).tolist()
+
+        np.random.seed(1234)
+        make_split_indices(1000, seed=99)
+        assert np.random.rand(3).tolist() == expected
 
 
 class TestTransforms:
@@ -82,8 +112,18 @@ class TestClassNames:
 
     def test_cifar10_classes_content(self):
         """Test CIFAR-10 class names."""
-        expected = ["airplane", "automobile", "bird", "cat", "deer",
-                    "dog", "frog", "horse", "ship", "truck"]
+        expected = [
+            "airplane",
+            "automobile",
+            "bird",
+            "cat",
+            "deer",
+            "dog",
+            "frog",
+            "horse",
+            "ship",
+            "truck",
+        ]
         assert CIFAR10_CLASSES == expected
 
 
@@ -104,7 +144,7 @@ class TestImageNetStats:
 # Skip actual data loading tests in CI to avoid downloading datasets
 @pytest.mark.skipif(
     not pytest.importorskip("torchvision", reason="torchvision required"),
-    reason="Skip data loading tests"
+    reason="Skip data loading tests",
 )
 class TestDataLoaders:
     """Tests for data loader creation (requires downloading data)."""
@@ -149,6 +189,7 @@ class TestDataLoaders:
     def test_reproducible_split(self):
         """Test that same seed produces same split."""
         import tempfile
+
         with tempfile.TemporaryDirectory() as data_dir:
             loader1 = get_cifar10_loaders(
                 batch_size=4, data_dir=data_dir, seed=42, num_workers=0

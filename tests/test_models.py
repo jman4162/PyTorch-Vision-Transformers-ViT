@@ -4,7 +4,12 @@ import pytest
 import torch
 from torch import nn
 
-from vit_trainer.models import load_model, VIT_VARIANTS, get_model_info, count_parameters
+from vit_trainer.models import (
+    load_model,
+    VIT_VARIANTS,
+    get_model_info,
+    count_parameters,
+)
 
 
 class TestLoadModel:

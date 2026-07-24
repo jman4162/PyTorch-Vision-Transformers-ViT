@@ -61,9 +61,7 @@ class TestTrainer:
 
     def test_trainer_fit_single_epoch(self, trainer):
         """Test fitting for a single epoch."""
-        train_loader, val_loader = create_dummy_loaders(
-            num_samples=16, batch_size=8
-        )
+        train_loader, val_loader = create_dummy_loaders(num_samples=16, batch_size=8)
 
         history = trainer.fit(
             train_loader,
@@ -202,6 +200,7 @@ class TestModelCheckpoint:
 
         # Better epoch - should save
         import os
+
         mtime1 = os.path.getmtime(tmp_path / "best.pt")
         cp.on_epoch_end(1, {"val_loss": 0.5}, trainer)
         mtime2 = os.path.getmtime(tmp_path / "best.pt")

@@ -46,6 +46,7 @@ class Trainer:
         device: Optional[torch.device] = None,
         model_dir: str = "./models",
         callbacks: Optional[List] = None,
+        metadata: Optional[Dict] = None,
     ):
         """Initialize trainer.
 
@@ -60,8 +61,10 @@ class Trainer:
             device: Training device (auto-detected if None)
             model_dir: Directory to save checkpoints
             callbacks: List of callback objects
+            metadata: Provenance stored inside every checkpoint written
         """
         self.model = model
+        self.metadata = metadata or {}
         self.lr = lr
         self.weight_decay = weight_decay
         self.warmup_epochs = warmup_epochs
@@ -99,6 +102,7 @@ class Trainer:
             "train_loss": [],
             "val_loss": [],
             "lr": [],
+            "epoch_time": [],
         }
 
     def _get_warmup_scheduler(self, total_epochs: int) -> LambdaLR:
@@ -260,6 +264,7 @@ class Trainer:
             scheduler.step()
 
             epoch_time = time.time() - start_time
+            self.history["epoch_time"].append(epoch_time)
 
             print(
                 f"Epoch {epoch + 1}/{epochs}: "
@@ -345,21 +350,38 @@ class Trainer:
                 return torch.softmax(outputs, dim=1)
             return torch.argmax(outputs, dim=1)
 
+    def peak_memory_mb(self) -> Optional[float]:
+        """Peak CUDA memory allocated so far, in MB (None on CPU)."""
+        if self.device.type != "cuda":
+            return None
+        return torch.cuda.max_memory_allocated(self.device) / (1024 * 1024)
+
     def save(self, filepath: str) -> None:
-        """Save model weights.
+        """Save model weights alongside the trainer's metadata.
 
         Args:
             filepath: Path to save model
         """
-        torch.save(self.model.state_dict(), filepath)
+        torch.save(
+            {
+                "model_state_dict": self.model.state_dict(),
+                "epoch": self.current_epoch,
+                "metrics": {k: v[-1] for k, v in self.history.items() if v},
+                "metadata": self.metadata,
+            },
+            filepath,
+        )
         print(f"Model saved to {filepath}")
 
     def load(self, filepath: str) -> None:
         """Load model weights.
 
+        Accepts checkpoints written by `ModelCheckpoint` and bare state_dicts.
+
         Args:
             filepath: Path to model file
         """
-        state_dict = torch.load(filepath, map_location=self.device, weights_only=True)
-        self.model.load_state_dict(state_dict)
+        from ..models.vit import load_state_dict
+
+        self.model.load_state_dict(load_state_dict(filepath, device=self.device))
         print(f"Model loaded from {filepath}")

@@ -73,6 +73,52 @@ def get_model_info(variant: str) -> Dict[str, Any]:
     return VIT_VARIANTS[variant][2]
 
 
+def load_state_dict(
+    checkpoint_path: str,
+    device: Optional[torch.device] = None,
+) -> Dict[str, torch.Tensor]:
+    """Read weights from a checkpoint file.
+
+    Accepts both layouts: a bare state_dict (what versions up to 0.1.0 wrote)
+    and the current dict carrying weights plus run metadata.
+
+    Args:
+        checkpoint_path: Path to a .pt file
+        device: Map location
+
+    Returns:
+        The model state_dict
+    """
+    if device is None:
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=True)
+
+    if isinstance(checkpoint, dict) and "model_state_dict" in checkpoint:
+        return checkpoint["model_state_dict"]
+    return checkpoint
+
+
+def read_checkpoint_metadata(
+    checkpoint_path: str,
+    device: Optional[torch.device] = None,
+) -> Dict[str, Any]:
+    """Read the non-weight contents of a checkpoint.
+
+    Returns an empty dict for checkpoints written before metadata was stored.
+    """
+    checkpoint = torch.load(
+        checkpoint_path,
+        map_location=device or torch.device("cpu"),
+        weights_only=True,
+    )
+
+    if not isinstance(checkpoint, dict) or "model_state_dict" not in checkpoint:
+        return {}
+
+    return {k: v for k, v in checkpoint.items() if k != "model_state_dict"}
+
+
 def load_model(
     variant: str = "vit_b_16",
     num_classes: int = 10,
@@ -122,8 +168,9 @@ def load_model(
     if checkpoint_path is not None:
         if device is None:
             device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        state_dict = torch.load(checkpoint_path, map_location=device, weights_only=True)
-        model.load_state_dict(state_dict)
+        model.load_state_dict(
+            load_state_dict(checkpoint_path, device=device),
+        )
 
     # Optional: Compile model for faster inference (PyTorch 2.x)
     if compile_model and hasattr(torch, "compile"):

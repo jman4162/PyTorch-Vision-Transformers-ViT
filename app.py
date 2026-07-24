@@ -91,11 +91,9 @@ def predict_with_attention(image: Image.Image):
 
     # Get attention map
     attn_map = visualize_attention(model, input_tensor[0], device=DEVICE)
-    if attn_map is not None:
-        overlay = show_attention_on_image(image.resize((224, 224)), attn_map)
-        return predictions, Image.fromarray(overlay)
+    overlay = show_attention_on_image(image.resize((224, 224)), attn_map)
 
-    return predictions, image.resize((224, 224))
+    return predictions, Image.fromarray(overlay)
 
 
 # Create Gradio interface
@@ -110,8 +108,11 @@ with gr.Blocks(title="ViT Image Classifier") as demo:
 
         **Classes**: airplane, automobile, bird, cat, deer, dog, frog, horse, ship, truck
 
-        **Note**: This model was trained on 32x32 CIFAR-10 images. For best results,
-        use images of single objects similar to the training data.
+        **Note**: This model was trained on 32x32 CIFAR-10 images upscaled to 224x224.
+        For best results, use images of single objects similar to the training data.
+
+        The attention overlay shows which patches the final-layer CLS token pooled
+        from. That is a diagnostic, not an explanation of the prediction.
         """
     )
 
@@ -130,7 +131,9 @@ with gr.Blocks(title="ViT Image Classifier") as demo:
         with gr.Row():
             with gr.Column():
                 input_image_attn = gr.Image(type="pil", label="Upload an Image")
-                classify_attn_btn = gr.Button("Classify with Attention", variant="primary")
+                classify_attn_btn = gr.Button(
+                    "Classify with Attention", variant="primary"
+                )
             with gr.Column():
                 output_label_attn = gr.Label(num_top_classes=5, label="Predictions")
                 output_attention = gr.Image(type="pil", label="Attention Overlay")

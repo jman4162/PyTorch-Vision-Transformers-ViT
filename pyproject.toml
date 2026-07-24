@@ -59,6 +59,7 @@ demo = [
 export = [
     "onnx>=1.14.0",
     "onnxruntime>=1.15.0",
+    "onnxscript>=0.1.0",  # needed by torch>=2.9's default dynamo ONNX exporter
 ]
 dev = [
     "pytest>=7.0.0",
@@ -94,6 +95,9 @@ vit_trainer = ["py.typed"]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
 addopts = "-v --tb=short"
+markers = [
+    "slow: tests that load or export a full-size ViT (deselect with '-m \"not slow\"')",
+]
 filterwarnings = [
     "ignore::DeprecationWarning",
     "ignore::UserWarning",

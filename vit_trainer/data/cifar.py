@@ -1,6 +1,6 @@
 """CIFAR-10/100 data loading utilities."""
 
-from typing import Optional, Tuple
+from typing import List, Optional, Tuple
 
 import numpy as np
 from torch.utils.data import DataLoader, Subset
@@ -22,7 +22,7 @@ CIFAR10_CLASSES = [
     "truck",
 ]
 
-# CIFAR-100 superclass names
+# CIFAR-100 fine label names, in torchvision's (alphabetical) label order
 CIFAR100_CLASSES = [
     "apple",
     "aquarium_fish",
@@ -127,6 +127,33 @@ CIFAR100_CLASSES = [
 ]
 
 
+def make_split_indices(
+    dataset_size: int,
+    train_split: float = 0.8,
+    seed: Optional[int] = None,
+) -> Tuple[List[int], List[int]]:
+    """Deterministically split indices into train and validation sets.
+
+    Uses a local Generator rather than `np.random.seed`, which would reseed the
+    process-wide RNG as a side effect of loading data. Calling this twice with
+    the same arguments always yields the same split, so a run manifest can
+    record which examples were held out.
+
+    Args:
+        dataset_size: Number of examples in the full training set
+        train_split: Fraction assigned to training
+        seed: Split seed; None draws a fresh split
+
+    Returns:
+        Tuple of (train_indices, val_indices)
+    """
+    rng = np.random.default_rng(seed)
+    indices = rng.permutation(dataset_size)
+    train_size = int(train_split * dataset_size)
+
+    return indices[:train_size].tolist(), indices[train_size:].tolist()
+
+
 def get_cifar10_loaders(
     batch_size: int = 64,
     data_dir: str = "./data",
@@ -161,10 +188,6 @@ def get_cifar10_loaders(
         ...     # Training loop
         ...     pass
     """
-    # Set seed for reproducible splits
-    if seed is not None:
-        np.random.seed(seed)
-
     # Get transforms
     train_transform = (
         get_train_transform(image_size)
@@ -177,14 +200,10 @@ def get_cifar10_loaders(
     datasets.CIFAR10(root=data_dir, train=True, download=True)
     datasets.CIFAR10(root=data_dir, train=False, download=True)
 
-    # Create split indices
     full_train_size = 50000  # CIFAR-10 training set size
-    indices = list(range(full_train_size))
-    np.random.shuffle(indices)
-
-    train_size = int(train_split * full_train_size)
-    train_indices = indices[:train_size]
-    val_indices = indices[train_size:]
+    train_indices, val_indices = make_split_indices(
+        full_train_size, train_split=train_split, seed=seed
+    )
 
     # Create datasets with PROPER transforms using Subset
     # This fixes the common bug where random_split doesn't change transforms
@@ -249,9 +268,6 @@ def get_cifar100_loaders(
     Returns:
         Tuple of (train_loader, val_loader, test_loader)
     """
-    if seed is not None:
-        np.random.seed(seed)
-
     train_transform = (
         get_train_transform(image_size)
         if augment_train
@@ -263,12 +279,9 @@ def get_cifar100_loaders(
     datasets.CIFAR100(root=data_dir, train=False, download=True)
 
     full_train_size = 50000
-    indices = list(range(full_train_size))
-    np.random.shuffle(indices)
-
-    train_size = int(train_split * full_train_size)
-    train_indices = indices[:train_size]
-    val_indices = indices[train_size:]
+    train_indices, val_indices = make_split_indices(
+        full_train_size, train_split=train_split, seed=seed
+    )
 
     train_dataset = Subset(
         datasets.CIFAR100(root=data_dir, train=True, transform=train_transform),

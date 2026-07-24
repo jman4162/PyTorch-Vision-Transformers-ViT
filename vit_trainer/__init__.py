@@ -29,18 +29,31 @@ from .data import (
     CIFAR100_CLASSES,
     get_cifar10_loaders,
     get_cifar100_loaders,
+    get_class_names,
     get_train_transform,
     get_val_transform,
+    make_split_indices,
 )
 from .evaluation import (
     compute_metrics,
     evaluate_model,
     get_predictions,
     plot_confusion_matrix,
+    plot_training_history,
 )
-from .models import VIT_VARIANTS, get_model_info, load_model
+from .models import (
+    VIT_VARIANTS,
+    freeze_backbone,
+    get_model_info,
+    load_model,
+    load_state_dict,
+    read_checkpoint_metadata,
+    unfreeze_model,
+)
+from .provenance import collect_run_metadata, hash_indices, save_run_metadata
 from .training import EarlyStopping, ModelCheckpoint, Trainer
 from .visualization import (
+    forward_with_attention,
     show_attention_on_image,
     visualize_attention,
     visualize_samples_with_attention,
@@ -54,11 +67,17 @@ __all__ = [
     "ExportConfig",
     # Models
     "load_model",
+    "load_state_dict",
+    "read_checkpoint_metadata",
+    "freeze_backbone",
+    "unfreeze_model",
     "VIT_VARIANTS",
     "get_model_info",
     # Data
     "get_cifar10_loaders",
     "get_cifar100_loaders",
+    "get_class_names",
+    "make_split_indices",
     "CIFAR10_CLASSES",
     "CIFAR100_CLASSES",
     "get_train_transform",
@@ -72,8 +91,14 @@ __all__ = [
     "get_predictions",
     "compute_metrics",
     "plot_confusion_matrix",
+    "plot_training_history",
+    # Provenance
+    "collect_run_metadata",
+    "save_run_metadata",
+    "hash_indices",
     # Visualization
     "visualize_attention",
+    "forward_with_attention",
     "show_attention_on_image",
     "visualize_samples_with_attention",
 ]

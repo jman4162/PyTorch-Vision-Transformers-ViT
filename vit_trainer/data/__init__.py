@@ -5,6 +5,8 @@ from .cifar import (
     CIFAR100_CLASSES,
     get_cifar10_loaders,
     get_cifar100_loaders,
+    get_class_names,
+    make_split_indices,
 )
 from .transforms import (
     IMAGENET_MEAN,
@@ -16,6 +18,8 @@ from .transforms import (
 __all__ = [
     "get_cifar10_loaders",
     "get_cifar100_loaders",
+    "get_class_names",
+    "make_split_indices",
     "CIFAR10_CLASSES",
     "CIFAR100_CLASSES",
     "get_train_transform",

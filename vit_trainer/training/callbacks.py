@@ -187,7 +187,19 @@ class ModelCheckpoint(Callback):
         )
         filepath = Path(filepath_str)
 
-        torch.save(trainer.model.state_dict(), filepath)
+        # Saved as a dict so the weights carry their own provenance. Optimizer
+        # and scaler state are deliberately excluded: AdamW moments for an 86M
+        # parameter model would push each checkpoint past 1 GB. Resuming an
+        # interrupted run is therefore not supported.
+        torch.save(
+            {
+                "model_state_dict": trainer.model.state_dict(),
+                "epoch": epoch,
+                "metrics": dict(logs),
+                "metadata": getattr(trainer, "metadata", None) or {},
+            },
+            filepath,
+        )
 
         if self.verbose:
             metric_value = logs.get(self.monitor, 0)
